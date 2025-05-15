@@ -1,52 +1,74 @@
 const AUTHORIZATION_TOKEN = 'syt_1234567890'; // 在这里填入你的Authorization值
 
-async function handleRequest(request) {
-  // 获取请求的 URL
-  const url = new URL(request.url);
+async function handleRequest(request) 
+{
+    // 获取请求的 URL
+    const url = new URL(request.url);
 
-  // 检查请求路径是否匹配
-  if (url.hostname === 'matrix-sticker.moeworld.top' && url.pathname.startsWith('/_matrix/media/v3/thumbnail/')) {
-    // 修改路径和域名
-    const newHostname = 'matrix.moeworld.top';
-    const newPathname = url.pathname.replace('/_matrix/media/v3/thumbnail/', '/_matrix/client/v1/media/thumbnail/');
+    // 检查请求路径是否匹配
+    if (url.hostname === 'matrix-sticker.moeworld.top' ) 
+    {
+        // 旧版v3接口
+        if(url.pathname.startsWith('/_matrix/media/v3/thumbnail/moeworld.top/'))
+        {
+            // 修改路径和域名
+            const newHostname = 'matrix.moeworld.top';
+            const newPathname = url.pathname.replace('/_matrix/media/v3/thumbnail/', '/_matrix/client/v1/media/thumbnail/');
 
-    // 创建新的 URL
-    const newUrl = new URL(url);
-    newUrl.hostname = newHostname;
-    newUrl.pathname = newPathname;
+            // 创建新的 URL
+            const newUrl = new URL(url);
+            newUrl.hostname = newHostname;
+            newUrl.pathname = newPathname;
+        }
+        // 新版v1接口
+        else if(url.pathname.startsWith('/_matrix/client/v1/media/thumbnail/moeworld.top/'))
+        {
+            // 修改路径和域名
+            const newHostname = 'matrix.moeworld.top';
+            // 创建新的 URL，因为已经是新接口了，路径不用换
+            const newUrl = new URL(url);
+            newUrl.hostname = newHostname;
+            newUrl.pathname = url.pathname;
+        }
+        // 路径对不上直接返回错误
+        else
+        {
+            return new Response('Not Found', { status: 404 });
+        }
 
-    // 构建新的请求头，包括 Authorization
-    const headers = new Headers(request.headers);
-    headers.set('Authorization', `Bearer ${AUTHORIZATION_TOKEN}`);
 
-    // 添加 Cloudflare 的缓存选项 
-    // 使 Cloudflare 在边缘节点缓存内容 30 天，以免synapse反应不过来
-    // cacheEverything: true 会缓存所有类型响应
-    // cacheTtl: 2592000 (30 天)
-    const modifiedRequest = new Request(newUrl, {
-      method: request.method,
-      headers: headers,
-      body: request.body,
-      cf: {
-        cacheEverything: true,
-        cacheTtl: 2592000
-      }
-    });
+        // 构建新的请求头，包括 Authorization
+        const headers = new Headers(request.headers);
+        headers.set('Authorization', `Bearer ${AUTHORIZATION_TOKEN}`);
 
-    // 发起代理请求
-    const response = await fetch(modifiedRequest);
+        // 添加 Cloudflare 的缓存选项 
+        // 使 Cloudflare 在边缘节点缓存内容 30 天，以免synapse反应不过来
+        // cacheEverything: true 会缓存所有类型响应
+        // cacheTtl: 2592000 (30 天)
+        const modifiedRequest = new Request(newUrl, {
+            method: request.method,
+            headers: headers,
+            body: request.body,
+            cf: {
+            cacheEverything: true,
+            cacheTtl: 2592000
+            }
+        });
 
-    // 创建一个新的 Response，并设置 Browser 缓存头，缓存 30 天
-    // (public, max-age=2592000, immutable)
-    const newResponse = new Response(response.body, response);
-    newResponse.headers.set('Cache-Control', 'public, max-age=2592000, immutable');
+        // 发起代理请求
+        const response = await fetch(modifiedRequest);
 
-    // 返回新的响应对象
-    return newResponse;
-  }
+        // 创建一个新的 Response，并设置 Browser 缓存头，缓存 30 天
+        // (public, max-age=2592000, immutable)
+        const newResponse = new Response(response.body, response);
+        newResponse.headers.set('Cache-Control', 'public, max-age=2592000, immutable');
 
-  // 如果不匹配路径，返回一个 404 错误
-  return new Response('Not Found', { status: 404 });
+        // 返回新的响应对象
+        return newResponse;
+    }
+
+    // 如果不匹配路径，返回一个 404 错误
+    return new Response('Not Found', { status: 404 });
 }
 
 addEventListener('fetch', event => {
