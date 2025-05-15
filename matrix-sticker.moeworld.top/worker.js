@@ -6,7 +6,6 @@ async function handleRequest(request) {
 
   // 检查请求路径是否匹配
   if (url.hostname === 'matrix-sticker.moeworld.top' && url.pathname.startsWith('/_matrix/media/v3/thumbnail/')) {
-  // if (url.hostname === 'matrix-sticker.moeworld.workers.dev' && url.pathname.startsWith('/_matrix/media/v3/thumbnail/')) {
     // 修改路径和域名
     const newHostname = 'matrix.moeworld.top';
     const newPathname = url.pathname.replace('/_matrix/media/v3/thumbnail/', '/_matrix/client/v1/media/thumbnail/');
