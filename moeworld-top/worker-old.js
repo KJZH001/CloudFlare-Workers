@@ -1,3 +1,5 @@
+// 仅代理文档站点，旧版存档
+
 // Website you intended to retrieve for users.
 const upstream = 'doc-mc.moeworld.top'
  
