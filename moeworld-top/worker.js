@@ -30,7 +30,7 @@ const WELLKNOWN_CLIENT = {
   "m.homeserver": { "base_url": "https://matrix.moeworld.top" }
 }
 // （可选）若需要联邦 delegation，再开启下面这行：
-// const WELLKNOWN_SERVER = { "m.server": "matrix.moeworld.top:443" }
+const WELLKNOWN_SERVER = { "m.server": "matrix.moeworld.top:443" }
 
 addEventListener('fetch', event => {
   event.respondWith(fetchAndApply(event.request));
@@ -48,7 +48,7 @@ async function fetchAndApply(request) {
     return handleWellKnownJSON(request, WELLKNOWN_CLIENT); // NEW
   }
   // （可选）若要同时提供 /.well-known/matrix/server，取消下一行注释：
-  // if (url.pathname === '/.well-known/matrix/server') { return handleWellKnownJSON(request, WELLKNOWN_SERVER); }
+  if (url.pathname === '/.well-known/matrix/server') { return handleWellKnownJSON(request, WELLKNOWN_SERVER); }
 
   // 其余请求维持你的原代理逻辑
   if (https === true) url.protocol = 'https:';
